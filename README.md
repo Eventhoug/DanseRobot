@@ -1,4 +1,5 @@
 # Danserobot
+Koden er uploadet til github vha Claude ellers er koden skrevet af os
 
 Arduino-kode til en lille robot med fire servoer (to ben og to fødder), der skiftevis danser og går sidelæns.
 
