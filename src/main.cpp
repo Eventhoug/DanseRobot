@@ -4,7 +4,7 @@
 #define LFootServoDefaultPos 110
 #define LLegServoDefaultPos 145
 #define RLegServoDefaultPos 30
-#define RFootServoDefaultPos 80
+#define RFootServoDefaultPos 90
 
 
 Servo LFootServo;
@@ -12,8 +12,13 @@ Servo LLegServo;
 Servo RLegServo;
 Servo RFootServo;
 
+void Dance();
+void Walk();
+
 void setup()
 {
+  Serial.begin(9600);
+
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -26,18 +31,20 @@ void setup()
   LLegServo.write(LLegServoDefaultPos);
   RLegServo.write(RLegServoDefaultPos);
   RFootServo.write(RFootServoDefaultPos);
-  delay(2000);
+  delay(5000);
+  Serial.println("Setup done");
 }
 void loop()
 {
-  Dance();
-  delay(2000);
   Walk();
+  delay(2000);
+  Dance();
   delay(2000);
 }
 
 void Dance()
 {
+  Serial.println("Dance");
   // Her laves en simpel dans
   // Føddernes servo kører ind og ud
   // Når robotten danser så tænder vi den built-in LED på Arduinoen
@@ -45,12 +52,40 @@ void Dance()
 
   for (int i = 0; i < 20; i++)
   {
-    LFootServo.write(LFootServoDefaultPos - 20);
-    RFootServo.write(RFootServoDefaultPos + 20);
-    delay(300);
-    LFootServo.write(LFootServoDefaultPos + 20);
-    RFootServo.write(RFootServoDefaultPos - 20);
-    delay(300);
+    LFootServo.write(LFootServoDefaultPos - 40);
+    RFootServo.write(RFootServoDefaultPos + 50);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos );
+    RFootServo.write(RFootServoDefaultPos );
+    delay(400);
+  }
+
+  for (int i = 0; i < 20; i++)
+  {
+    // Trin 1
+    LLegServo.write(LLegServoDefaultPos + 25);
+    RLegServo.write(RLegServoDefaultPos - 25);
+    delay(180);
+
+    // Trin 2
+  
+    LFootServo.write(LFootServoDefaultPos);
+    RFootServo.write(RFootServoDefaultPos);
+    delay(180);
+
+    // Trin 3
+    LFootServo.write(LFootServoDefaultPos + 10);
+    RFootServo.write(RFootServoDefaultPos + 10);
+    LLegServo.write(LLegServoDefaultPos - 25);
+    RLegServo.write(RLegServoDefaultPos + 25);
+    delay(180);
+
+    // Trin 4
+    LFootServo.write(LFootServoDefaultPos);
+    RFootServo.write(RFootServoDefaultPos);
+    LLegServo.write(LLegServoDefaultPos);
+    RLegServo.write(RLegServoDefaultPos);
+    delay(180);
   }
 
   LFootServo.write(LFootServoDefaultPos);
@@ -60,21 +95,22 @@ void Dance()
 
 void Walk()
 {
-  // Her bevæges servoerne så robotten kan gå sidelæns
+  Serial.println("Walk");
   digitalWrite(LED_BUILTIN, HIGH);
 
-  for (int i = 0; i < 20; i++) {
-    LLegServo.write(LLegServoDefaultPos - 20);
-    LFootServo.write(LFootServoDefaultPos + 20);
-    RLegServo.write(RLegServoDefaultPos + 20);
-    RFootServo.write(RFootServoDefaultPos - 20);
-    delay(500);
-    LLegServo.write(LLegServoDefaultPos);
+ for (int i = 0; i < 20; i++)
+  {
+    LFootServo.write(LFootServoDefaultPos - 20);
+    RFootServo.write(RFootServoDefaultPos + 10);
+    delay(300);
     LFootServo.write(LFootServoDefaultPos);
-    RLegServo.write(RLegServoDefaultPos);
     RFootServo.write(RFootServoDefaultPos);
-    delay(500);
+    delay(300);
   }
 
+  LFootServo.write(LFootServoDefaultPos);
+  RFootServo.write(RFootServoDefaultPos);
+  LLegServo.write(LLegServoDefaultPos);
+  RLegServo.write(RLegServoDefaultPos);
   digitalWrite(LED_BUILTIN, LOW);
 }
