@@ -52,8 +52,8 @@ void Dance()
 
   for (int i = 0; i < 20; i++)
   {
-    LFootServo.write(LFootServoDefaultPos - 40);
-    RFootServo.write(RFootServoDefaultPos + 50);
+    LFootServo.write(LFootServoDefaultPos - 20);
+    RFootServo.write(RFootServoDefaultPos + 30);
     delay(400);
     LFootServo.write(LFootServoDefaultPos );
     RFootServo.write(RFootServoDefaultPos );
