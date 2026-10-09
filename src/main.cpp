@@ -6,7 +6,6 @@
 #define RLegServoDefaultPos 30
 #define RFootServoDefaultPos 90
 
-
 Servo LFootServo;
 Servo LLegServo;
 Servo RLegServo;
@@ -14,6 +13,7 @@ Servo RFootServo;
 
 void Dance();
 void Walk();
+void TurnRightLeg_SpeedDegree(int speed, int degree);
 
 void setup()
 {
@@ -55,8 +55,8 @@ void Dance()
     LFootServo.write(LFootServoDefaultPos - 20);
     RFootServo.write(RFootServoDefaultPos + 30);
     delay(400);
-    LFootServo.write(LFootServoDefaultPos );
-    RFootServo.write(RFootServoDefaultPos );
+    LFootServo.write(LFootServoDefaultPos);
+    RFootServo.write(RFootServoDefaultPos);
     delay(400);
   }
 
@@ -68,9 +68,8 @@ void Dance()
     delay(180);
 
     // Trin 2
-  
-    LFootServo.write(LFootServoDefaultPos);
-    RFootServo.write(RFootServoDefaultPos);
+    LLegServo.write(LLegServoDefaultPos);
+    RLegServo.write(RLegServoDefaultPos);
     delay(180);
 
     // Trin 3
@@ -93,24 +92,52 @@ void Dance()
   digitalWrite(LED_BUILTIN, LOW);
 }
 
+void TurnRightLeg_SpeedDegree(int speed, int degree)
+{
+  speed = abs(speed);
+  if (speed == 0)
+  {
+    return;
+  }
+
+  int current = RLegServo.read();
+  int increment = current < degree ? speed : -speed;
+
+  for (int position = current;
+       increment > 0 ? position <= degree : position >= degree;
+       position += increment)
+  {
+    RLegServo.write(position);
+    delay(50);
+  }
+
+  RLegServo.write(degree);
+}
+
 void Walk()
 {
   Serial.println("Walk");
   digitalWrite(LED_BUILTIN, HIGH);
 
- for (int i = 0; i < 20; i++)
+  for (int step = 0; step < 4; step++)
   {
+    // Flyt højre ben ud, mens venstre fod holder robotten på plads.
+    TurnRightLeg_SpeedDegree(2, RLegServoDefaultPos + 25);
+    RFootServo.write(RFootServoDefaultPos + 25);
+    delay(250);
+
+    // Flyt venstre ben efter og sæt højre fod tilbage.
+    LLegServo.write(LLegServoDefaultPos - 25);
     LFootServo.write(LFootServoDefaultPos - 20);
-    RFootServo.write(RFootServoDefaultPos + 10);
-    delay(300);
-    LFootServo.write(LFootServoDefaultPos);
+    delay(250);
+
+    // Sæt benene tilbage i udgangsposition.
     RFootServo.write(RFootServoDefaultPos);
-    delay(300);
+    LFootServo.write(LFootServoDefaultPos);
+    LLegServo.write(LLegServoDefaultPos);
+    TurnRightLeg_SpeedDegree(2, RLegServoDefaultPos);
+    delay(250);
   }
 
-  LFootServo.write(LFootServoDefaultPos);
-  RFootServo.write(RFootServoDefaultPos);
-  LLegServo.write(LLegServoDefaultPos);
-  RLegServo.write(RLegServoDefaultPos);
   digitalWrite(LED_BUILTIN, LOW);
 }
