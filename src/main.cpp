@@ -96,6 +96,8 @@ void Walk()
     RLegServo.write(RLegServoDefaultPos);
     delay(400);
 
+
+    // Måske reverse + og -
     LFootServo.write(LFootServoDefaultPos - 20);
     delay(400);
     RFootServo.write(RFootServoDefaultPos + 20);
