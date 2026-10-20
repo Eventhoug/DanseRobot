@@ -28,7 +28,6 @@ void setup()
 
   LFootServo.write(LFootServoDefaultPos);
   LLegServo.write(LLegServoDefaultPos);
-  delay(300);
   RLegServo.write(RLegServoDefaultPos);
   RFootServo.write(RFootServoDefaultPos);
   delay(5000);
@@ -36,10 +35,12 @@ void setup()
 }
 void loop()
 {
+  
   Walk();
   delay(2000);
   Dance();
   delay(2000);
+  
 }
 
 void Dance()
@@ -49,13 +50,13 @@ void Dance()
 
   for (int i = 0; i < 20; i++)
   {
-    LFootServo.write(LFootServoDefaultPos - 40);
-    delay(200);
-    LLegServo.write(LLegServoDefaultPos - 40);
+    RFootServo.write(RFootServoDefaultPos + 20);
     delay(400);
-    LFootServo.write(LFootServoDefaultPos);
-    delay(200);
-    LLegServo.write(LLegServoDefaultPos);
+    LFootServo.write(LFootServoDefaultPos + 20);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos - 20);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos - 20);
     delay(400);
   }
 
@@ -73,12 +74,47 @@ void Walk()
 
   for (int i = 0; i < 20; i++)
   {
-    RLegServo.write(RLegServoDefaultPos + 30);
-    delay(200);
-    LLegServo.write(LLegServoDefaultPos + 30);
+    RFootServo.write(RFootServoDefaultPos - 20);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos + 20);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos);
+    delay(400);
+    LLegServo.write(LLegServoDefaultPos + 20);
+    delay(400);
+    RLegServo.write(RLegServoDefaultPos - 20);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos + 20);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos - 20);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos);
+    delay(400);
+    LLegServo.write(LLegServoDefaultPos);
+    RLegServo.write(RLegServoDefaultPos);
+    delay(400);
+
+    LFootServo.write(LFootServoDefaultPos - 20);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos + 20);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos);
+    delay(400);
+    RLegServo.write(RLegServoDefaultPos + 20);
+    delay(400);
+    LLegServo.write(LLegServoDefaultPos - 20);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos);
+    delay(400);
+    LFootServo.write(LFootServoDefaultPos + 20);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos - 20);
+    delay(400);
+    RFootServo.write(RFootServoDefaultPos);
     delay(400);
     RLegServo.write(RLegServoDefaultPos);
-    delay(200);
     LLegServo.write(LLegServoDefaultPos);
     delay(400);
   }
