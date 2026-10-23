@@ -9,9 +9,7 @@
 // Hvor meget robotten læner sig (fødder) og svinger benene (hofter), i grader
 #define TILT 15
 #define SWING 20
-// Skift til -1 hvis robotten går baglæns
-#define WALK_DIR 1
-// Hvor lang tid hver bevægelse tager (ms) - højere = roligere
+// Hvor lang tid hver bevægelse tager (ms)
 #define MOVE_TIME 500
 
 Servo LFootServo;
@@ -23,7 +21,6 @@ Servo RFootServo;
 int footOffset = 0;
 int legOffset = 0;
 
-// Flytter blødt fødder og ben til nye offsets over MOVE_TIME ms.
 // Begge fødder får samme offset, og begge ben får samme offset.
 void move(int foot, int leg)
 {
@@ -66,6 +63,20 @@ void Dance()
   digitalWrite(LED_BUILTIN, LOW);
 }
 
+// Ét skridt fra default-positionen og tilbage igen.
+// side = 1 er det første skridt, side = -1 er det spejlvendte.
+void Step(int side)
+{
+  // 1. Læn over på det ene ben (det andet ben bliver let)
+  move(side * TILT, 0);
+  // 2. Sving det lette ben frem
+  move(side * TILT, side * SWING);
+  // 3. Sæt foden ned igen
+  move(0, side * SWING);
+  // 4. Tilbage til default, så næste skridt starter samme sted
+  move(0, 0);
+}
+
 void Walk(int steps)
 {
   Serial.println("Walk");
@@ -74,16 +85,9 @@ void Walk(int steps)
   for (int i = 0; i < steps; i++)
   {
     int side = (i % 2 == 0) ? 1 : -1;
-
-    // 1. Læn over på det ene ben (det andet ben bliver let)
-    move(side * TILT, legOffset);
-    // 2. Sving det lette ben frem
-    move(side * TILT, side * WALK_DIR * SWING);
-    // 3. Sæt foden ned igen
-    move(0, side * WALK_DIR * SWING);
+    Step(side);
   }
 
-  move(0, 0);
   digitalWrite(LED_BUILTIN, LOW);
 }
 
