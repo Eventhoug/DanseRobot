@@ -1,11 +1,16 @@
 #include <Arduino.h>
 #include <Servo.h>
 
-// Startpositioner for servoerne (grader)
-#define LF_HOME 110
-#define LL_HOME 145
-#define RL_HOME 30
-#define RF_HOME 80
+// Default positioner fra de tidligere versioner på GitHub (grader)
+#define LFootServoDefaultPos 110
+#define LLegServoDefaultPos 145
+#define RLegServoDefaultPos 30
+#define RFootServoDefaultPos 90
+
+#define LF_HOME LFootServoDefaultPos
+#define LL_HOME LLegServoDefaultPos
+#define RL_HOME RLegServoDefaultPos
+#define RF_HOME RFootServoDefaultPos
 
 // Bevægelser (grader) og ventetid (ms) - juster efter behov
 #define TILT 20
@@ -139,10 +144,17 @@ void walk(int steps) {
 }
 
 void setup() {
+  // Reset servo pos: sæt default pos før attach, så servoerne starter der
+  LFootServo.write(LFootServoDefaultPos);
+  LLegServo.write(LLegServoDefaultPos);
+  RLegServo.write(RLegServoDefaultPos);
+  RFootServo.write(RFootServoDefaultPos);
+
   LFootServo.attach(11);
   LLegServo.attach(6);
   RLegServo.attach(5);
   RFootServo.attach(3);
+
   home();
   delay(1000);
 }
