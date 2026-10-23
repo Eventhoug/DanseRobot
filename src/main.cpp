@@ -19,51 +19,72 @@ Servo LLegServo;
 Servo RLegServo;
 Servo RFootServo;
 
-// Nuværende positioner, så vi kan bevæge os blødt derfra
-int lfPos = LFootServoDefaultPos;
-int llPos = LLegServoDefaultPos;
-int rlPos = RLegServoDefaultPos;
-int rfPos = RFootServoDefaultPos;
+// Hvor langt fødderne og benene er fra deres default-position lige nu
+int footOffset = 0;
+int legOffset = 0;
 
-void Dance();
-void Walk(int steps);
-
-// Flytter alle 4 servoer samtidig og blødt til de nye positioner over 'ms' millisekunder
-void moveTo(int lf, int ll, int rl, int rf, int ms)
+// Flytter blødt fødder og ben til nye offsets over MOVE_TIME ms.
+// Begge fødder får samme offset, og begge ben får samme offset.
+void move(int foot, int leg)
 {
-  int startLf = lfPos, startLl = llPos, startRl = rlPos, startRf = rfPos;
-  int steps = max(1, ms / 20);
-
-  for (int i = 1; i <= steps; i++)
+  for (int t = 20; t <= MOVE_TIME; t += 20)
   {
-    LFootServo.write(startLf + (long)(lf - startLf) * i / steps);
-    LLegServo.write(startLl + (long)(ll - startLl) * i / steps);
-    RLegServo.write(startRl + (long)(rl - startRl) * i / steps);
-    RFootServo.write(startRf + (long)(rf - startRf) * i / steps);
+    int f = map(t, 0, MOVE_TIME, footOffset, foot);
+    int l = map(t, 0, MOVE_TIME, legOffset, leg);
+
+    LFootServo.write(LFootServoDefaultPos + f);
+    LLegServo.write(LLegServoDefaultPos + l);
+    RLegServo.write(RLegServoDefaultPos + l);
+    RFootServo.write(RFootServoDefaultPos + f);
     delay(20);
   }
 
-  lfPos = lf;
-  llPos = ll;
-  rlPos = rl;
-  rfPos = rf;
+  footOffset = foot;
+  legOffset = leg;
 }
 
-// Begge fødder vippes samme vej, så robotten læner sig over på det ene ben.
-// tilt: +1 / -1 / 0 (lige), swing: hoftevinkel i forhold til default
-void pose(int tilt, int swing, int ms)
+void Dance()
 {
-  moveTo(
-      LFootServoDefaultPos + tilt * TILT,
-      LLegServoDefaultPos + swing,
-      RLegServoDefaultPos + swing,
-      RFootServoDefaultPos + tilt * TILT,
-      ms);
+  Serial.println("Dance");
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  // Vugger fra side til side
+  for (int i = 0; i < 6; i++)
+  {
+    move(TILT, 0);
+    move(-TILT, 0);
+  }
+
+  // Vrider hofterne frem og tilbage
+  for (int i = 0; i < 4; i++)
+  {
+    move(0, SWING);
+    move(0, -SWING);
+  }
+
+  move(0, 0);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
-void home()
+void Walk(int steps)
 {
-  moveTo(LFootServoDefaultPos, LLegServoDefaultPos, RLegServoDefaultPos, RFootServoDefaultPos, MOVE_TIME);
+  Serial.println("Walk");
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  for (int i = 0; i < steps; i++)
+  {
+    int side = (i % 2 == 0) ? 1 : -1;
+
+    // 1. Læn over på det ene ben (det andet ben bliver let)
+    move(side * TILT, legOffset);
+    // 2. Sving det lette ben frem
+    move(side * TILT, side * WALK_DIR * SWING);
+    // 3. Sæt foden ned igen
+    move(0, side * WALK_DIR * SWING);
+  }
+
+  move(0, 0);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void setup()
@@ -73,7 +94,7 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  // Reset servo pos: sæt default pos før attach, så servoerne starter der
+  // Sæt default pos før attach, så servoerne starter der
   LFootServo.write(LFootServoDefaultPos);
   LLegServo.write(LLegServoDefaultPos);
   RLegServo.write(RLegServoDefaultPos);
@@ -94,48 +115,4 @@ void loop()
   delay(2000);
   Dance();
   delay(2000);
-}
-
-void Dance()
-{
-  Serial.println("Dance");
-  digitalWrite(LED_BUILTIN, HIGH);
-
-  // Vugger fra side til side
-  for (int i = 0; i < 6; i++)
-  {
-    pose(1, 0, MOVE_TIME);
-    pose(-1, 0, MOVE_TIME);
-  }
-
-  // Vrider hofterne frem og tilbage
-  for (int i = 0; i < 4; i++)
-  {
-    pose(0, SWING, MOVE_TIME);
-    pose(0, -SWING, MOVE_TIME);
-  }
-
-  home();
-  digitalWrite(LED_BUILTIN, LOW);
-}
-
-void Walk(int steps)
-{
-  Serial.println("Walk");
-  digitalWrite(LED_BUILTIN, HIGH);
-
-  for (int i = 0; i < steps; i++)
-  {
-    int side = (i % 2 == 0) ? 1 : -1;
-
-    // 1. Læn over på det ene ben (det andet ben bliver let)
-    pose(side, rlPos - RLegServoDefaultPos, MOVE_TIME);
-    // 2. Sving det lette ben frem
-    pose(side, side * WALK_DIR * SWING, MOVE_TIME);
-    // 3. Sæt foden ned igen
-    pose(0, side * WALK_DIR * SWING, MOVE_TIME);
-  }
-
-  home();
-  digitalWrite(LED_BUILTIN, LOW);
 }
