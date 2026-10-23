@@ -1,149 +1,78 @@
 #include <Arduino.h>
 #include <Servo.h>
 
-// Default positioner fra de tidligere versioner på GitHub (grader)
 #define LFootServoDefaultPos 110
 #define LLegServoDefaultPos 145
 #define RLegServoDefaultPos 30
 #define RFootServoDefaultPos 90
 
-#define LF_HOME LFootServoDefaultPos
-#define LL_HOME LLegServoDefaultPos
-#define RL_HOME RLegServoDefaultPos
-#define RF_HOME RFootServoDefaultPos
-
-// Bevægelser (grader) og ventetid (ms) - juster efter behov
-#define TILT 20
-#define LEFT_SWING 25
-#define RIGHT_SWING 25
-#define PAUSE 300
+// Hvor meget robotten læner sig (fødder) og svinger benene (hofter), i grader
+#define TILT 15
+#define SWING 20
+// Skift til -1 hvis robotten går baglæns
+#define WALK_DIR 1
+// Hvor lang tid hver bevægelse tager (ms) - højere = roligere
+#define MOVE_TIME 500
 
 Servo LFootServo;
 Servo LLegServo;
 Servo RLegServo;
 Servo RFootServo;
 
-void moveTo(int lf, int ll, int rl, int rf) {
-  LFootServo.write(constrain(lf, 0, 180));
-  LLegServo.write(constrain(ll, 0, 180));
-  RLegServo.write(constrain(rl, 0, 180));
-  RFootServo.write(constrain(rf, 0, 180));
-}
+// Nuværende positioner, så vi kan bevæge os blødt derfra
+int lfPos = LFootServoDefaultPos;
+int llPos = LLegServoDefaultPos;
+int rlPos = RLegServoDefaultPos;
+int rfPos = RFootServoDefaultPos;
 
-void home() {
-  moveTo(LF_HOME, LL_HOME, RL_HOME, RF_HOME);
-}
+void Dance();
+void Walk(int steps);
 
-// VENSTRE SKRIDT
-void stepLeft() {
-  // Flyt vægten over på højre ben
-  moveTo(
-    LF_HOME + TILT,
-    LL_HOME,
-    RL_HOME,
-    RF_HOME
-  );
-  delay(PAUSE);
+// Flytter alle 4 servoer samtidig og blødt til de nye positioner over 'ms' millisekunder
+void moveTo(int lf, int ll, int rl, int rf, int ms)
+{
+  int startLf = lfPos, startLl = llPos, startRl = rlPos, startRf = rfPos;
+  int steps = max(1, ms / 20);
 
-  // Sving venstre ben frem
-  moveTo(
-    LF_HOME + TILT,
-    LL_HOME,
-    RL_HOME,
-    RF_HOME - TILT
-  );
-  delay(PAUSE);
-
-moveTo(
-    LF_HOME,
-    LL_HOME - LEFT_SWING,
-    RL_HOME - RIGHT_SWING,
-    RF_HOME - TILT
-  );
-  delay(PAUSE);
-
-  // Sæt venstre ben ned
-  moveTo(
-    LF_HOME,
-    LL_HOME - LEFT_SWING,
-    RL_HOME - RIGHT_SWING,
-    RF_HOME
-  );
-delay(PAUSE);
-
- moveTo(
-    LF_HOME,
-    LL_HOME,
-    RL_HOME,
-    RF_HOME
-  );
-
-  delay(100);
-  home();
-  delay(PAUSE);
-}
-
-// HØJRE SKRIDT
-void stepRight() {
-  // Flyt vægten over på venstre ben
-  moveTo(
-    LF_HOME,
-    LL_HOME,
-    RL_HOME,
-    RF_HOME - TILT
-  );
-  delay(PAUSE);
-
-  // Højre bens fungerende bevægelse
-  moveTo(
-    LF_HOME + TILT,
-    LL_HOME,
-    RL_HOME,
-    RF_HOME - TILT
-  );
-  delay(PAUSE);
-
-  // Sæt højre ben ned
-  moveTo(
-    LF_HOME + TILT,
-    LL_HOME + LEFT_SWING,
-    RL_HOME + RIGHT_SWING,
-    RF_HOME
-  );
-delay(PAUSE);
-
-moveTo(
-    LF_HOME,
-    LL_HOME + LEFT_SWING,
-    RL_HOME + RIGHT_SWING,
-    RF_HOME
-  );
-delay(PAUSE);
-
-  moveTo(
-    LF_HOME,
-    LL_HOME,
-    RL_HOME,
-    RF_HOME
-  );
-
-  delay(100);
-  home();
-  delay(PAUSE);
-}
-
-void walk(int steps) {
-  for (int i = 0; i < steps; i++) {
-    if (i % 2 == 0) {
-      stepLeft();
-    } else {
-      stepRight();
-    }
+  for (int i = 1; i <= steps; i++)
+  {
+    LFootServo.write(startLf + (long)(lf - startLf) * i / steps);
+    LLegServo.write(startLl + (long)(ll - startLl) * i / steps);
+    RLegServo.write(startRl + (long)(rl - startRl) * i / steps);
+    RFootServo.write(startRf + (long)(rf - startRf) * i / steps);
+    delay(20);
   }
-  home();
+
+  lfPos = lf;
+  llPos = ll;
+  rlPos = rl;
+  rfPos = rf;
 }
 
-void setup() {
+// Begge fødder vippes samme vej, så robotten læner sig over på det ene ben.
+// tilt: +1 / -1 / 0 (lige), swing: hoftevinkel i forhold til default
+void pose(int tilt, int swing, int ms)
+{
+  moveTo(
+      LFootServoDefaultPos + tilt * TILT,
+      LLegServoDefaultPos + swing,
+      RLegServoDefaultPos + swing,
+      RFootServoDefaultPos + tilt * TILT,
+      ms);
+}
+
+void home()
+{
+  moveTo(LFootServoDefaultPos, LLegServoDefaultPos, RLegServoDefaultPos, RFootServoDefaultPos, MOVE_TIME);
+}
+
+void setup()
+{
+  Serial.begin(9600);
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
   // Reset servo pos: sæt default pos før attach, så servoerne starter der
   LFootServo.write(LFootServoDefaultPos);
   LLegServo.write(LLegServoDefaultPos);
@@ -155,11 +84,58 @@ void setup() {
   RLegServo.attach(5);
   RFootServo.attach(3);
 
-  home();
-  delay(1000);
+  delay(3000);
+  Serial.println("Setup done");
 }
 
-void loop() {
-  walk(4);
-  delay(1000);
+void loop()
+{
+  Walk(6);
+  delay(2000);
+  Dance();
+  delay(2000);
+}
+
+void Dance()
+{
+  Serial.println("Dance");
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  // Vugger fra side til side
+  for (int i = 0; i < 6; i++)
+  {
+    pose(1, 0, MOVE_TIME);
+    pose(-1, 0, MOVE_TIME);
+  }
+
+  // Vrider hofterne frem og tilbage
+  for (int i = 0; i < 4; i++)
+  {
+    pose(0, SWING, MOVE_TIME);
+    pose(0, -SWING, MOVE_TIME);
+  }
+
+  home();
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
+void Walk(int steps)
+{
+  Serial.println("Walk");
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  for (int i = 0; i < steps; i++)
+  {
+    int side = (i % 2 == 0) ? 1 : -1;
+
+    // 1. Læn over på det ene ben (det andet ben bliver let)
+    pose(side, rlPos - RLegServoDefaultPos, MOVE_TIME);
+    // 2. Sving det lette ben frem
+    pose(side, side * WALK_DIR * SWING, MOVE_TIME);
+    // 3. Sæt foden ned igen
+    pose(0, side * WALK_DIR * SWING, MOVE_TIME);
+  }
+
+  home();
+  digitalWrite(LED_BUILTIN, LOW);
 }
